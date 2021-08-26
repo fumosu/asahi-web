@@ -7,7 +7,6 @@ new Vue({
             boards : {},
             mode : 'std',
             mods : 'vn',
-            sort : 'pp',
             load : false,
             no_player : false, // soon
         };
@@ -17,25 +16,23 @@ new Vue({
         this.LoadLeaderboard(sort, mode, mods);
     },
     methods: {
-        LoadData(mode, mods, sort) {
+        LoadData(mode, mods) {
             this.$set(this, 'mode', mode);
             this.$set(this, 'mods', mods);
-            this.$set(this, 'sort', sort);
         },
-        LoadLeaderboard(sort, mode, mods) {
+        LoadLeaderboard(mode, mods) {
             if (window.event)
                 window.event.preventDefault();
-
-            window.history.replaceState('', document.title, `/leaderboard/${this.mode}/${this.sort}/${this.mods}`);
+            
             this.$set(this, 'mode', mode);
             this.$set(this, 'mods', mods);
-            this.$set(this, 'sort', sort);
             this.$set(this, 'load', true);
-            this.$axios.get(`${window.location.protocol}//osu.${domain}/api/get_leaderboard`, { params: {
-                mode: this.StrtoGulagInt(),
-                sort: this.sort
+            window.history.replaceState('', document.title, `/leaderboard/${this.mode}/${this.mods}`);
+            this.$axios.get(`${window.location.protocol}//api.${domain}/get_leaderboard`, { params: {
+                mode: this.StrtoModeInt(),
+                rx: this.StrtoModInt()
             }}).then(res => {
-                this.boards = res.data.leaderboard;
+                this.boards = res.data;
                 this.$set(this, 'load', false);
             });
         },
@@ -59,17 +56,21 @@ new Vue({
             }
             return x1 + x2;
         },
-        StrtoGulagInt() {
-            switch (this.mode + "|" + this.mods) {
-                case 'std|vn': return 0;
-                case 'taiko|vn': return 1;
-                case 'catch|vn': return 2;
-                case 'mania|vn': return 3;
-                case 'std|rx': return 4;
-                case 'taiko|rx': return 5;
-                case 'catch|rx': return 6;
-                case 'std|ap': return 7;
-                default: return -1;
+        StrtoModeInt() {
+            switch (this.mode) {
+                case 'std': return 0;
+                case 'taiko': return 1;
+                case 'catch': return 2;
+                case 'mania': return 3;
+                default: return 0;
+            }
+        },
+        StrtoModInt() {
+            switch (this.mods) {
+                case 'vn': return 0;
+                case 'rx': return 1;
+                case 'ap': return 2;
+                default: return 0;
             }
         },
     },

@@ -37,20 +37,23 @@ new Vue({
                         }
                     }
                 },
-                status: {}
+                status: {
+                    out: [{}],
+                    load: true
+                }
             },
             mode: mode,
             mods: mods,
-            modegulag: 0,
+            modeasahi: 0,
             userid: userid
         };
     },
     created() {
         // starting a page
-        this.modegulag = this.StrtoGulagInt();
+        this.mode = this.StrtoModeInt();
         this.LoadProfileData();
+        this.LoadPlayerStatus();
         this.LoadAllofdata();
-        this.LoadUserStatus();
     },
     methods: {
         LoadAllofdata() {
@@ -60,24 +63,38 @@ new Vue({
         },
         LoadProfileData() {
             this.$set(this.data.stats, 'load', true);
-            this.$axios.get(`${window.location.protocol}//osu.${domain}/api/get_player_info`, {
+            this.$axios.get(`${window.location.protocol}//api.${domain}/player`, {
                     params: {
                         id: this.userid,
-                        scope: 'all'
+                        mode: this.StrtoModeInt(),
+                        rx: this.StrtoModInt()
                     }
                 })
                 .then(res => {
-                    this.$set(this.data.stats, 'out', res.data.player.stats);
+                    this.$set(this.data.stats, 'out', res.data.stats);
                     this.data.stats.load = false;
                 });
         },
+        LoadPlayerStatus() {
+            this.$set(this.data.status, 'load', true);
+            this.$axios.get(`${window.location.protocol}//api.${domain}/player_status`, {
+                params: {
+                    id: this.userid
+                }
+            })
+                .then(res => {
+                    this.$set(this.data.status, 'out', res.data.status);
+                    this.data.status.load = false;
+                });
+        },   
         LoadScores(sort) {
             this.$set(this.data.scores[`${sort}`], 'load', true);
-            this.$axios.get(`${window.location.protocol}//osu.${domain}/api/get_player_scores`, {
+            this.$axios.get(`${window.location.protocol}//api.${domain}/player_scores`, {
                     params: {
                         id: this.userid,
-                        mode: this.StrtoGulagInt(),
-                        scope: sort,
+                        mode: this.StrtoModeInt(),
+                        rx: this.StrtoModInt(),
+                        type: sort,
                         limit: this.data.scores[`${sort}`].more.limit
                     }
                 })
@@ -89,11 +106,12 @@ new Vue({
         },
         LoadMostBeatmaps() {
             this.$set(this.data.maps.most, 'load', true);
-            this.$axios.get(`${window.location.protocol}//osu.${domain}/api/get_player_most_played`, {
+            this.$axios.get(`${window.location.protocol}//api.${domain}/player_most_played`, {
                     params: {
                         id: this.userid,
-                        mode: this.StrtoGulagInt(),
-                        limit: this.data.maps.most.more.limit
+                        mode: this.StrtoModeInt(),
+                        limit: this.data.maps.most.more.limit,
+                        rx: this.StrtoModInt()
                     }
                 })
                 .then(res => {
@@ -102,21 +120,6 @@ new Vue({
                     this.data.maps.most.more.full = this.data.maps.most.out.length != this.data.maps.most.more.limit;
                 });
         },
-        LoadUserStatus() {
-            this.$axios.get(`${window.location.protocol}//osu.${domain}/api/get_player_status`, {
-                    params: {
-                        id: this.userid
-                    }
-                })
-                .then(res => {
-                    this.$set(this.data, 'status', res.data.player_status)
-                })
-                .catch(function (error) {
-                    clearTimeout(loop);
-                    console.log(error);
-                });
-            loop = setTimeout(this.LoadUserStatus, 5000);
-        },
         ChangeModeMods(mode, mods) {
             if (window.event)
                 window.event.preventDefault();
@@ -124,7 +127,7 @@ new Vue({
             this.mode = mode;
             this.mods = mods;
 
-            this.modegulag = this.StrtoGulagInt();
+            this.modegulag = this.StrtoModeInt();
             this.data.scores.recent.more.limit = 5
             this.data.scores.best.more.limit = 5
             this.data.maps.most.more.limit = 6
@@ -146,31 +149,31 @@ new Vue({
             }
         },
         actionIntToStr(d) {
-            switch (d.action) {
+            switch (d[`action`]) {
                 case 0:
                     return 'Idle: 🔍 Song Select';
                 case 1:
                     return '🌙 AFK';
                 case 2:
-                    return `Playing: 🎶 ${d.info_text}`;
+                    return `Playing: 🎶 ${d[`info`]}`;
                 case 3:
-                    return `Editing: 🔨 ${d.info_text}`;
+                    return `Editing: 🔨 ${d[`info`]}`;
                 case 4:
-                    return `Modding: 🔨 ${d.info_text}`;
+                    return `Modding: 🔨 ${d[`info`]}`;
                 case 5:
                     return 'In Multiplayer: Song Select';
                 case 6:
-                    return `Watching: 👓 ${d.info_text}`;
+                    return `Watching: 👓 ${d[`info`]}`;
                     // 7 not used
                 case 8:
-                    return `Testing: 🎾 ${d.info_text}`;
+                    return `Testing: 🎾 ${d[`info`]}`;
                 case 9:
-                    return `Submitting: 🧼 ${d.info_text}`;
+                    return `Submitting: 🧼 ${d[`info`]}`;
                     // 10 paused, never used
                 case 11:
                     return 'Idle: 🏢 In multiplayer lobby';
                 case 12:
-                    return `In Multiplayer: Playing 🌍 ${d.info_text} 🎶`;
+                    return `In Multiplayer: Playing 🌍 ${d[`info`]} 🎶`;
                 case 13:
                     return 'Idle: 🔍 Searching for beatmaps in osu!direct';
                 default:
@@ -195,28 +198,6 @@ new Vue({
             var mDisplay = `${Math.floor(seconds % 3600 / 60)}m `;
             return dDisplay + hDisplay + mDisplay;
         },
-        StrtoGulagInt() {
-            switch (this.mode + "|" + this.mods) {
-                case 'std|vn':
-                    return 0;
-                case 'taiko|vn':
-                    return 1;
-                case 'catch|vn':
-                    return 2;
-                case 'mania|vn':
-                    return 3;
-                case 'std|rx':
-                    return 4;
-                case 'taiko|rx':
-                    return 5;
-                case 'catch|rx':
-                    return 6;
-                case 'std|ap':
-                    return 7;
-                default:
-                    return -1;
-            }
-        },
         StrtoModeInt() {
             switch (this.mode) {
                 case 'std':
@@ -227,6 +208,20 @@ new Vue({
                     return 2;
                 case 'mania':
                     return 3;
+                default:
+                    return 0;
+            }
+        },
+        StrtoModInt() {
+            switch (this.mods) {
+                case 'vn':
+                    return 0;
+                case 'rx':
+                    return 1;
+                case 'ap':
+                    return 2;
+                default:
+                    return 0;
             }
         },
     },

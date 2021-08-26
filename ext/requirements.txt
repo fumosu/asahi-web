@@ -1,10 +1,10 @@
 cmyui
 quart
-bcrypt
+cryptography
+fatFuckSQL
 aiomysql
 aiohttp
 mysql-connector
-asyncpg
 orjson
 timeago
 markdown2

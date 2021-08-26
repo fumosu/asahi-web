@@ -2,7 +2,6 @@
 
 __all__ = ()
 
-import bcrypt
 import hashlib
 import os
 import time
@@ -12,6 +11,9 @@ from cmyui.logging import log
 from functools import wraps
 from PIL import Image
 from pathlib import Path
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.hkdf import HKDFExpand
+from cryptography.hazmat.backends import default_backend as backend
 from quart import Blueprint
 from quart import redirect
 from quart import render_template
@@ -76,7 +78,7 @@ async def settings_profile_post():
         return await flash('error', 'No changes have been made.', 'settings/profile')
 
     if new_name != old_name:
-        if not session['user_data']['is_donator']:
+        if not session['user_data']['is_donator'] or not session['user_data']['is_staff']:
             return await flash('error', 'Username changes are currently a supporter perk.', 'settings/profile')
 
         # Usernames must:
@@ -138,7 +140,7 @@ async def settings_avatar():
 @login_required
 async def settings_avatar_post():
     # constants
-    AVATARS_PATH = f'{glob.config.path_to_gulag}.data/avatars'
+    AVATARS_PATH = f'{glob.config.path_to_asahi}.data/avatars'
     ALLOWED_EXTENSIONS = ['.jpeg', '.jpg', '.png']
 
     avatar = (await request.files).get('avatar')
@@ -251,44 +253,48 @@ async def settings_password_post():
         return await flash('error', 'Your new password was deemed too simple.', 'settings/password')
 
     # cache and other password related information
-    bcrypt_cache = glob.cache['bcrypt']
-    pw_bcrypt = (await glob.db.fetch(
-        'SELECT pw_bcrypt '
+    pw_cache = glob.cache['pw']
+    pw_hash = (await glob.db.fetchval(
+        'SELECT pw '
         'FROM users '
         'WHERE id = %s',
         [session['user_data']['id']])
-    )['pw_bcrypt'].encode()
+    )['pw_bcrypt'].encode('ISO-8859-1').decode('unicode-escape').encode('ISO-8859-1')
 
     pw_md5 = hashlib.md5(old_password.encode()).hexdigest().encode()
 
     # check old password against db
     # intentionally slow, will cache to speed up
-    if pw_bcrypt in bcrypt_cache:
-        if pw_md5 != bcrypt_cache[pw_bcrypt]: # ~0.1ms
+    if pw_hash in pw_cache:
+        if pw_md5 != pw_cache[pw_hash]: # ~0.1ms
             if glob.config.debug:
                 log(f"{session['user_data']['name']}'s change pw failed - pw incorrect.", Ansi.LYELLOW)
             return await flash('error', 'Your old password is incorrect.', 'settings/password')
     else: # ~200ms
-        if not bcrypt.checkpw(pw_md5, pw_bcrypt):
+        k = HKDFExpand(algorithm=hashes.SHA256(), length=32, info=b'', backend=backend())
+        try:
+            k.verify(pw_hash, pw_md5)
+        except:
             if glob.config.debug:
                 log(f"{session['user_data']['name']}'s change pw failed - pw incorrect.", Ansi.LYELLOW)
             return await flash('error', 'Your old password is incorrect.', 'settings/password')
 
     # remove old password from cache
-    if pw_bcrypt in bcrypt_cache:
-        del bcrypt_cache[pw_bcrypt]
+    if pw_hash in pw_cache:
+        del pw_cache[pw_hash]
 
     # calculate new md5 & bcrypt pw
     pw_md5 = hashlib.md5(new_password.encode()).hexdigest().encode()
-    pw_bcrypt = bcrypt.hashpw(pw_md5, bcrypt.gensalt())
+    k = HKDFExpand(algorithm=hashes.SHA256(), length=32, info=b'', backend=backend())
+    pw_hash_new = k.derive(pw_md5).decode('unicode-escape')
 
     # update password in cache and db
-    bcrypt_cache[pw_bcrypt] = pw_md5
+    pw_cache[pw_hash_new] = pw_md5
     await glob.db.execute(
         'UPDATE users '
-        'SET pw_bcrypt = %s '
+        'SET pw = %s '
         'WHERE safe_name = %s',
-        [pw_bcrypt, utils.get_safe_name(session['user_data']['name'])]
+        [pw_hash_new, utils.get_safe_name(session['user_data']['name'])]
     )
 
     # logout
@@ -314,7 +320,7 @@ async def profile(id):
     else:
         mods = 'vn'
 
-    user_data = await glob.db.fetch(
+    user_data = await glob.db.fetchrow(
         'SELECT name, id, priv, country '
         'FROM users '
         'WHERE id = %s',
@@ -323,7 +329,7 @@ async def profile(id):
 
     # user is banned and we're not staff; render 404
     is_staff = 'authenticated' in session and session['user_data']['is_staff']
-    if not user_data or not (user_data['priv'] & Privileges.Normal or is_staff):
+    if not user_data or not (user_data['priv'] & Privileges.Verified or is_staff):
         return (await render_template('404.html'), 404)
 
     user_data['customisation'] = utils.has_profile_customizations(id)
@@ -332,10 +338,10 @@ async def profile(id):
 
 @frontend.route('/leaderboard')
 @frontend.route('/lb')
-@frontend.route('/leaderboard/<mode>/<sort>/<mods>')
-@frontend.route('/lb/<mode>/<sort>/<mods>')
-async def leaderboard(mode='std', sort='pp', mods='vn'):
-    return await render_template('leaderboard.html', mode=mode, sort=sort, mods=mods)
+@frontend.route('/leaderboard/<mode>/<mods>')
+@frontend.route('/lb/<mode>/<mods>')
+async def leaderboard(mode='std', mods='vn'):
+    return await render_template('leaderboard.html', mode=mode, mods=mods)
 
 @frontend.route('/login')
 async def login():
@@ -360,9 +366,9 @@ async def login_post():
         return await flash('error', 'Invalid parameters.', 'home')
 
     # check if account exists
-    user_info = await glob.db.fetch(
+    user_info = await glob.db.fetchrow(
         'SELECT id, name, email, priv, '
-        'pw_bcrypt, silence_end '
+        'pw, silence_end '
         'FROM users '
         'WHERE safe_name = %s',
         [utils.get_safe_name(username)]
@@ -376,25 +382,28 @@ async def login_post():
         return await flash('error', 'Account does not exist.', 'login')
 
     # cache and other related password information
-    bcrypt_cache = glob.cache['bcrypt']
-    pw_bcrypt = user_info['pw_bcrypt'].encode()
+    pw_cache = glob.cache['pw']
+    pw_hash = user_info['pw'].encode('ISO-8859-1').decode('unicode-escape').encode('ISO-8859-1')
     pw_md5 = hashlib.md5(passwd_txt.encode()).hexdigest().encode()
 
     # check credentials (password) against db
     # intentionally slow, will cache to speed up
-    if pw_bcrypt in bcrypt_cache:
-        if pw_md5 != bcrypt_cache[pw_bcrypt]: # ~0.1ms
+    if pw_hash in pw_cache:
+        if pw_md5 != pw_cache[pw_hash]: # ~0.1ms
             if glob.config.debug:
                 log(f"{username}'s login failed - pw incorrect.", Ansi.LYELLOW)
             return await flash('error', 'Password is incorrect.', 'login')
     else: # ~200ms
-        if not bcrypt.checkpw(pw_md5, pw_bcrypt):
+        k = HKDFExpand(algorithm=hashes.SHA256(), length=32, info=b'', backend=backend())
+        try:
+           k.verify(pw_md5, pw_hash)
+        except:
             if glob.config.debug:
                 log(f"{username}'s login failed - pw incorrect.", Ansi.LYELLOW)
             return await flash('error', 'Password is incorrect.', 'login')
 
         # login successful; cache password for next login
-        bcrypt_cache[pw_bcrypt] = pw_md5
+        pw_cache[pw_hash] = pw_md5
 
     # user not verified; render verify
     if not user_info['priv'] & Privileges.Verified:
@@ -419,8 +428,8 @@ async def login_post():
         'email': user_info['email'],
         'priv': user_info['priv'],
         'silence_end': user_info['silence_end'],
-        'is_staff': user_info['priv'] & Privileges.Staff != 0,
-        'is_donator': user_info['priv'] & Privileges.Donator != 0
+        'is_staff': user_info['priv'] & Privileges.Staff,
+        'is_donator': user_info['priv'] & Privileges.Supporter
     }
 
     if glob.config.debug:
@@ -506,37 +515,38 @@ async def register_post():
     # TODO: add correct locking
     # (start of lock)
     pw_md5 = hashlib.md5(passwd_txt.encode()).hexdigest().encode()
-    pw_bcrypt = bcrypt.hashpw(pw_md5, bcrypt.gensalt())
-    glob.cache['bcrypt'][pw_bcrypt] = pw_md5 # cache pw
+    k = HKDFExpand(algorithm=hashes.SHA256(), length=32, info=b'', backend=backend())
+    pw_hash = k.derive(pw_md5).decode('unicode-escape')
+    glob.cache['pw'][pw_hash] = pw_md5 # cache pw
 
     safe_name = utils.get_safe_name(username)
 
     # fetch the users' country
-    if (
-        request.headers and
-        (ip := request.headers.get('X-Real-IP', type=str)) is not None
-    ):
-        country = await utils.fetch_geoloc(ip)
-    else:
-        country = 'xx'
+    #if 'CF-Connecting-IP' in request.headers:
+    #    ip = request.headers['CF-Connecting-IP']
+    #else:
+    #    ip = request.headers['X-Forwarded-For'].split(',')[0]
+    
+    #try:
+    #    country = await utils.fetch_geoloc(ip)
+    #except:
+    country = 'PL'
 
-    async with glob.db.pool.acquire() as conn:
-        async with conn.cursor() as db_cursor:
-            # add to `users` table.
-            await db_cursor.execute(
-                'INSERT INTO users '
-                '(name, safe_name, email, pw_bcrypt, country, creation_time, latest_activity) '
-                'VALUES (%s, %s, %s, %s, %s, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())',
-                [username, safe_name, email, pw_bcrypt, country]
-            )
-            user_id = db_cursor.lastrowid
+    user = await glob.db.execute(
+        'INSERT INTO users '
+        '(name, safe_name, email, pw, country, registered_at) '
+        'VALUES (%s, %s, %s, %s, %s, UNIX_TIMESTAMP())',
+        [username, safe_name, email, pw_hash, country]
+    )
+        
+    user_id = user
 
-            # add to `stats` table.
-            await db_cursor.executemany(
-                'INSERT INTO stats '
-                '(id, mode) VALUES (%s, %s)',
-                [(user_id, mode) for mode in range(8)]
-            )
+    # add to `stats` table.
+    await glob.db.execute(
+        'INSERT INTO stats '
+        '(id) VALUES (%s)',
+        user_id
+    )
 
     # (end of lock)
 

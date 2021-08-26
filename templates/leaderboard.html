@@ -20,85 +20,71 @@
     <div class="leaderboard-banner main-banner">
         <div class="main-selector">
             <a class="mode-select" v-bind:class="{ 'active': mode === 'std' }"
-            @click="LoadLeaderboard(sort, 'std', mods)">
+            @click="LoadLeaderboard('std', mods)">
                 <i class="mode-icon mode-osu"></i><span class="modetext"> osu!</span>
             </a>
             <a class="mode-select" v-bind:class="{ 'active': mode === 'taiko', 'disabled': mods === 'ap' }"
-            @click="LoadLeaderboard(sort, 'taiko', mods)">
+            @click="LoadLeaderboard('taiko', mods)">
                 <i class="mode-icon mode-taiko"></i><span class="modetext"> osu!taiko</span>
             </a>
             <a class="mode-select" v-bind:class="{ 'active': mode === 'catch', 'disabled': mods === 'ap' }"
-            @click="LoadLeaderboard(sort, 'catch', mods)">
+            @click="LoadLeaderboard('catch', mods)">
                 <i class="mode-icon mode-catch"></i><span class="modetext"> osu!catch</span>
             </a>
             <a class="mode-select" v-bind:class="{ 'active': mode === 'mania', 'disabled': mods === 'ap' || mods === 'rx' }"
-            @click="LoadLeaderboard(sort, 'mania', mods)">
+            @click="LoadLeaderboard('mania', mods)">
                 <i class="mode-icon mode-mania"></i><span class="modetext"> osu!mania</span>
             </a>
         </div>
         <div class="banner-text">Leaderboard</div>
         <div class="selector">
             <div class="left">
-                <a class="simple-banner-switch" v-bind:class="{ 'active': sort === 'pp' }"
-                @click="LoadLeaderboard('pp', mode, mods, '')">PP</a>
-                <a class="simple-banner-switch" v-bind:class="{ 'active': sort === 'rscore' }"
-                @click="LoadLeaderboard('rscore', mode, mods, '')">Score</a>
-            </div>
-            <div class="right">
                 <a class="simple-banner-switch" v-bind:class=" { 'active': mods === 'vn' }"
-                @click="LoadLeaderboard(sort, mode, 'vn')">Vanilla</a>
+                @click="LoadLeaderboard(mode, 'vn')">Vanilla</a>
                 <a class="simple-banner-switch" v-bind:class=" { 'active': mods === 'rx', 'disabled': mode === 'mania' }"
-                @click="LoadLeaderboard(sort, mode, 'rx')">Relax</a>
+                @click="LoadLeaderboard(mode, 'rx')">Relax</a>
                 <a class="simple-banner-switch" v-bind:class=" { 'active': mods === 'ap', 'disabled': mode === 'taiko' || mode === 'catch' || mode === 'mania'  }"
-                @click="LoadLeaderboard(sort, mode, 'ap')">Autopilot</a>
+                @click="LoadLeaderboard(mode, 'ap')">Autopilot</a>
             </div>
         </div>
     </div>
     <div class="main-block">
         <div class="leaderboard-main-bg table-responsive">
-            <div v-if="boards.length != undefined && boards.length != 0">
+            <div v-if="boards != {}">
                 <table class="leaderboard-table table-responsive">
                     <thead>
                         <tr>
-                            <th class="t-heading"> </th>
+                            <th class="t-heading"> Rank </th>
                             <th class="t-heading t-heading--main"></th>
-                            <th v-if="sort == 'pp' || sort == 'rscore'" class="t-heading table--selected">
-                                <% (sort=='pp' ? "PP" : "" ) %>
-                                    <% (sort=='rscore' ? "Score" : "" ) %>
-                            </th>
+                            <th class="t-heading"> PP </th>
                             <th class="t-heading"> Accuracy </th>
                             <th class="t-heading"> Playcount </th>
-                            <th class="t-heading"> Max Combo </th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(user, index) in boards" class="leaderboard-column">
-                            <td class="column-player-rank">#<% index + 1 %>
+                        <tr v-for="(user) in boards" class="leaderboard-column">
+                            <td class="column-player-rank">#<% user[`rank`] %>
                             </td>
                             <td class="column-player-name text-left">
-                                <a :title="flags[user.country.toUpperCase()]"
-                                    :style="'background-image: url(/static/images/flags/' + user.country.toUpperCase() + '.png)'"
+                                <a :title="flags[user[`country`].toUpperCase()]"
+                                    :style="'background-image: url(/static/images/flags/' + user[`country`].toUpperCase() + '.png)'"
                                     class="player-flag">
                                     <div class="flag-dropdown">
-                                        <% flags[user.country.toUpperCase()] %>
+                                        <% flags[user[`country`].toUpperCase()] %>
                                     </div>
                                 </a>
-                                <a :href="'/u/'+user.player_id">
-                                    <% user.name %>
+                                <a :href="'/u/'+user[`userid`]">
+                                    <% user[`name`] %>
                                 </a>
                             </td>
-                            <td v-if="sort == 'pp' || sort == 'rscore'">
-                                <% (sort=='pp' ? user.pp+'pp' : "" ) %>
-                                    <% (sort=='rscore' ? scoreFormat(user.rscore) : "" ) %>
+                            <td>
+                                <% user[`pp`] %>pp
                             </td>
                             <td>
-                                <% user.acc.toFixed(2) %>%
+                                <% user[`acc`].toFixed(2) %>%
                             </td>
                             <td>
-                                <% addCommas(user.plays) %>
-                            </td>
-                            <td>
-                                <% addCommas(user.max_combo) %>
+                                <% addCommas(user[`playcount`]) %>
                             </td>
                         </tr>
                     </tbody>

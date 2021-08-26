@@ -21,8 +21,8 @@ mysql = {
     'password': 'changeme',
 }
 
-# path to gulag root (must have leading and following slash)
-path_to_gulag = '/path/to/gulag/'
+# path to asahi root (must have leading and following slash)
+path_to_asahi = '/path/to/asahi/'
 
 # enable debug (disable when in production to improve performance)
 debug = False
@@ -41,8 +41,8 @@ disallowed_passwords = {
 # enable registration
 registration = True
 
-# social links (used throughout guweb)
-github = 'https://github.com/varkaria/guweb'
+# social links (used throughout asahi-web)
+github = 'https://github.com/7ez/asahi-web'
 discord_server = 'https://discord.com/invite/Y5uPvcNpD9'
 youtube = 'https://youtube.com/'
 twitter = 'https://twitter.com/'

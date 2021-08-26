@@ -12,12 +12,15 @@ from quart import render_template
 
 from cmyui.logging import Ansi
 from cmyui.logging import log
-from cmyui.mysql import AsyncSQLPool
 from cmyui.version import Version
+
+from fatFuckSQL import fatFawkSQL
 
 from objects import glob
 
 app = Quart(__name__)
+app.config["TEMPLATES_AUTO_RELOAD"] = True
+app.config["PERMANENT_SESSION_LIFETIME"] = 315400000
 
 version = Version(1, 3, 0)
 
@@ -27,8 +30,7 @@ app.secret_key = glob.config.secret_key
 
 @app.before_serving
 async def mysql_conn() -> None:
-    glob.db = AsyncSQLPool()
-    await glob.db.connect(glob.config.mysql)
+    glob.db = await fatFawkSQL.connect(**glob.config.mysql)
     log('Connected to MySQL!', Ansi.LGREEN)
 
 @app.before_serving
