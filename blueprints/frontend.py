@@ -412,7 +412,7 @@ async def login_post():
         return await render_template('verify.html')
 
     # user banned; deny post
-    if not user_info['priv'] & Privileges.Normal:
+    if user_info['priv'] & Privileges.Disallowed:
         if glob.config.debug:
             log(f"{username}'s login failed - banned.", Ansi.RED)
         return await flash('error', 'Your account is restricted. You are not allowed to log in.', 'login')
@@ -522,15 +522,15 @@ async def register_post():
     safe_name = utils.get_safe_name(username)
 
     # fetch the users' country
-    #if 'CF-Connecting-IP' in request.headers:
-    #    ip = request.headers['CF-Connecting-IP']
-    #else:
-    #    ip = request.headers['X-Forwarded-For'].split(',')[0]
+    if 'CF-Connecting-IP' in request.headers:
+        ip = request.headers['CF-Connecting-IP']
+    else:
+        ip = request.headers['X-Forwarded-For'].split(',')[0]
     
-    #try:
-    #    country = await utils.fetch_geoloc(ip)
-    #except:
-    country = 'PL'
+    try:
+        country = await utils.fetch_geoloc(ip)
+    except:
+        country = 'xx'
 
     user = await glob.db.execute(
         'INSERT INTO users '
