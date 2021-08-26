@@ -43,7 +43,7 @@ registration = True
 
 # social links (used throughout asahi-web)
 github = 'https://github.com/7ez/asahi-web'
-discord_server = 'https://discord.com/invite/Y5uPvcNpD9'
+discord_server = 'https://discord.com/invite/d62tzSYv3z'
 youtube = 'https://youtube.com/'
 twitter = 'https://twitter.com/'
 instagram = 'https://instagram.com/'
