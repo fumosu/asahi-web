@@ -140,6 +140,7 @@ cython_debug/
 # Project specific
 config.py
 .vscode/
+.idea/
 .data/*
 !.data/backgrounds/.gitkeep
 !.data/banners/.gitkeep
