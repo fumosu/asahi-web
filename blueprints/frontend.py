@@ -156,16 +156,15 @@ async def settings_avatar_post():
         return await flash('error', 'The image you select must be either a .JPG, .JPEG, or .PNG file!', 'settings/avatar')
 
     # remove old avatars
-    for fx in ALLOWED_EXTENSIONS:
-        if os.path.isfile(f'{AVATARS_PATH}/{session["user_data"]["id"]}{fx}'): # Checking file e
-            os.remove(f'{AVATARS_PATH}/{session["user_data"]["id"]}{fx}')
+    if os.path.isfile(f'{AVATARS_PATH}/{session["user_data"]["id"]}'): # Checking file e
+        os.remove(f'{AVATARS_PATH}/{session["user_data"]["id"]}')
 
     # avatar cropping to 1:1
     pilavatar = Image.open(avatar.stream)
 
     # avatar change success
     pilavatar = utils.crop_image(pilavatar)
-    pilavatar.save(os.path.join(AVATARS_PATH, f'{session["user_data"]["id"]}{file_extension.lower()}'))
+    pilavatar.save(os.path.join(AVATARS_PATH, f'{session["user_data"]["id"]}'))
     return await flash('success', 'Your avatar has been successfully changed!', 'settings/avatar')
 
 @frontend.route('/settings/custom')
