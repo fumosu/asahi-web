@@ -140,7 +140,7 @@ async def settings_avatar():
 @login_required
 async def settings_avatar_post():
     # constants
-    AVATARS_PATH = f'{glob.config.path_to_asahi}.data/avatars'
+    AVATARS_PATH = f'{glob.config.path_to_asahi}resources/avatars'
     ALLOWED_EXTENSIONS = ['.jpeg', '.jpg', '.png']
 
     avatar = (await request.files).get('avatar')
