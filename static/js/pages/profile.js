@@ -51,13 +51,13 @@ new Vue({
     created() {
         // starting a page
         this.mode = this.StrtoModeInt();
-        this.LoadProfileData();
         this.LoadPlayerStatus();
         this.LoadAllofdata();
     },
     methods: {
         LoadAllofdata() {
             this.LoadMostBeatmaps();
+            this.LoadProfileData();
             this.LoadScores('best');
             this.LoadScores('recent');
         },

@@ -40,7 +40,7 @@
             </div>-->
 
             {% if session.authenticated and session.user_data['is_staff'] %}
-            <a class="navbar-item" href="/admin">
+            <a class="navbar-item" href="https://admin.{{ domain() }}/">
                 Admin
             </a>
             {% endif %}
