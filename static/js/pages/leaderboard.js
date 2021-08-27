@@ -12,8 +12,8 @@ new Vue({
         };
     },
     created() {
-        this.LoadData(mode, mods, sort);
-        this.LoadLeaderboard(sort, mode, mods);
+        this.LoadData(mode, mods);
+        this.LoadLeaderboard(mode, mods);
     },
     methods: {
         LoadData(mode, mods) {
