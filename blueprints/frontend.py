@@ -569,6 +569,10 @@ async def logout():
 
     # render login
     return await flash('success', 'Successfully logged out!', 'login')
+    
+@frontend.route('/rules')
+async def rules():
+    return await render_template('rules.html')
 
 # social media redirections
 

@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %} Home {% endblock %}
+
+{% block header %}
+<link rel="stylesheet" href="/static/css/pages/home.css">
+{% endblock %}
+
+{% block content %}
+
+{% if flash %}
+<div class='noti-banner noti-banner-warning'>
+  <div class="container">
+    <div class="noti-column">
+      <div class='noti-col noti-col-icon'></div>
+      <div class='noti-col noti-col-label'>
+        <div class='noti-bannertype'>
+          {% if status=='error' %}
+          Warning
+          {% elif status=='success' %}
+          Notice
+          {% endif %}
+        </div>
+        <div class='noti-bannertext'>
+          {% if status=='error' %}
+          Uh oh! Be careful!
+          {% elif status=='success' %}
+          Hey! Listen!
+          {% endif %}
+        </div>
+      </div>
+      <div class='noti-banner-text'>
+        {{ flash }}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="hero splash p-less is-fullheight-with-navbar" id="home-hero">
+  <div class="container flex">
+    <div class="columns flex-vcenter">
+      <div class="column flex-vcenter flex-lcenter is-size-2-desktop is-size-1-fullhd" id="title">
+        <h1 class="title is-spaced is-size-2-desktop is-size-1-fullhd">Server Rules</h1>
+        <h2 class="subtitle">
+1. Cheating alongside and any other form of hacking are strictly prohibited.<br/>
+2. Editing the client is forbidden.<br/>
+3. Sharing or boosting an account is not allowed, and will be met with a ban.<br/>
+4. Please do not exploit any vulnerabilities or the server itself. If any are found, please be responsible and report it to a developer.<br/>
+5. Stealing the username of a popular public figure is forbidden.<br/>
+        <br/>
+        <h1 class="title is-spaced is-size-2-desktop is-size-1-fullhd">Chat Rules</h1>
+        <h2 class="subtitle">
+1. Offensive speech is forbidden.<br/>
+2. Swearing is allowed if it's not offensive towards a particular person.<br/>
+3. Spreading malicious software and/or content such as cheats, hacks, or NSFW is forbidden.<br/>
+4. Don't spam unicode, lines and symbols.<br/>
+5. Do not advertise content unrelated to this server.<br/>
+        </h2>
+      </div>
+      <div class="column flex flex-lcenter" id="mascot">
+        <div class="gulag-avatar"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}

@@ -15,6 +15,7 @@ body {
 }
 
 html {
+  --main: 198;
   position: relative;
   min-height: 100%;
 }
