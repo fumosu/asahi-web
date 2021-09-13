@@ -35,7 +35,7 @@ async def home():
 
     recent_users = await glob.db.fetch('SELECT * FROM users ORDER BY id DESC LIMIT 5')
     recent_scores = await glob.db.fetch(
-        'SELECT scores_vn.*, maps.artist, maps.title, '
+        'SELECT scores.*, maps.artist, maps.title, '
         'maps.set_id, maps.mapper creator, maps.diff version '
         'FROM scores JOIN maps ON scores.md5 = maps.md5 '
         'ORDER BY scores.id DESC LIMIT 5'
