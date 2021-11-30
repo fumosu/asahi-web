@@ -5,6 +5,7 @@ __all__ = ()
 import hashlib
 import os
 import time
+import pycountry
 
 from cmyui.logging import Ansi
 from cmyui.logging import log
@@ -337,7 +338,7 @@ async def profile(user):
 
     user_data['customisation'] = utils.has_profile_customizations(id)
 
-    return await render_template('profile.html', user=user_data, mode=mode, mods=mods)
+    return await render_template('profile.html', user=user_data, mode=mode, mods=mods, country=(pycountry.countries.get(alpha_2=user_data['country'])).name)
 
 @frontend.route('/leaderboard')
 @frontend.route('/lb')
