@@ -322,10 +322,11 @@ async def profile(user):
         mods = 'vn'
 
     query = "SELECT name, id, priv, country FROM users WHERE"
-    if isinstance(user, str):
+    try:
+        str(user)
         query += " safe_name = %s"
         arg = [utils.get_safe_name(user)]
-    else:
+    except:
         query += " id = %s"
         arg = [user]
 
