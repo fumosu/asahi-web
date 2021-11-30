@@ -320,7 +320,7 @@ async def profile(user):
     else:
         mods = 'vn'
 
-    query = "SELECT name, id, priv, country FROM USERS WHERE"
+    query = "SELECT name, id, priv, country FROM users WHERE"
     if user == str:
         query += " safe_name = %s"
         arg = [utils.get_safe_name(user)]
