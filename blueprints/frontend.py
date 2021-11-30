@@ -323,12 +323,12 @@ async def profile(user):
 
     query = "SELECT name, id, priv, country FROM users WHERE"
     try:
-        str(user)
-        query += " safe_name = %s"
-        arg = [utils.get_safe_name(user)]
-    except:
+        int(user)
         query += " id = %s"
         arg = [user]
+    except:
+        query += " safe_name = %s"
+        arg = [utils.get_safe_name(user)]
 
     user_data = await glob.db.fetchrow(query, arg)
 
