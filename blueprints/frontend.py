@@ -332,7 +332,7 @@ async def profile(user):
     user_data = await glob.db.fetchrow(query, arg)
 
     # user is banned and we're not staff; render 404
-    is_staff = 'authenticated' in session ad session['user_data']['is_staff']
+    is_staff = 'authenticated' in session and session['user_data']['is_staff']
     if not user_data or not (user_data['priv'] & Privileges.Verified or is_staff):
         return (await render_template('404.html'), 404)
 
