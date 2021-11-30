@@ -254,6 +254,14 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/timeago.js/4.0.2/timeago.min.js"></script>
 <link rel="stylesheet" href="/static/css/pages/profile.css">
 
+<head>
+ <meta property="og:type" content="website" />							
+ <meta property="og:url" content="https://fumosu.pw/u/{{ user['id'] }}" />							
+ <meta property="og:title" content="{{ user['name'] }}" />	
+ <meta property="og:description" content="<b>{{ user['name'] }}</b> is a Fumosu Player from <b>{{ country }}</b>." />
+ <meta property="og:image" content="https://a.fumosu.pw/{{ user['id'] }}" />
+</head>
+
 <script>
     var userid = Number("{{ user['id'] }}"); //For text editor doesn't dizzy lmao
     var mode = '{{ mode }}';
