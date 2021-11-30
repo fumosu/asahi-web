@@ -302,8 +302,8 @@ async def settings_password_post():
     session.pop('user_data', None)
     return await flash('success', 'Your password has been changed! Please log in again.', 'login')
 
-@frontend.route('/u/<id>')
-async def profile(id):
+@frontend.route('/u/<user>')
+async def profile(user):
     mode = request.args.get('mode', type=str)
     mods = request.args.get('mods', type=str)
 
@@ -320,15 +320,19 @@ async def profile(id):
     else:
         mods = 'vn'
 
-    user_data = await glob.db.fetchrow(
-        'SELECT name, id, priv, country '
-        'FROM users '
-        'WHERE id = %s',
-        [id]
-    )
+    query = "SELECT name, id, priv, country FROM USERS WHERE"
+    if user == str:
+        query += " safe_name = %s"
+        arg = [utils.get_safe_name(user)]
+    else:
+        query += " id = %s"
+        arg = [user]
+ 
+  
+    user_data = await glob.db.fetchrow(query, arg)
 
     # user is banned and we're not staff; render 404
-    is_staff = 'authenticated' in session and session['user_data']['is_staff']
+    is_staff = 'authenticated' in session ad session['user_data']['is_staff']
     if not user_data or not (user_data['priv'] & Privileges.Verified or is_staff):
         return (await render_template('404.html'), 404)
 
