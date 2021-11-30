@@ -321,14 +321,13 @@ async def profile(user):
         mods = 'vn'
 
     query = "SELECT name, id, priv, country FROM users WHERE"
-    if user == str:
+    if isinstance(user, str):
         query += " safe_name = %s"
         arg = [utils.get_safe_name(user)]
     else:
         query += " id = %s"
         arg = [user]
- 
-  
+
     user_data = await glob.db.fetchrow(query, arg)
 
     # user is banned and we're not staff; render 404
