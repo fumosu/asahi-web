@@ -19,7 +19,7 @@
                     </div>
                     <div class="map-title-block">
                         <div class="map-title">
-                            <a class="beatmap-link">
+                            <a class="beatmap-link" href="https://osu.ppy.sh/b/<% map[`map`][`id`] %>">
                                 <% map[`map`][`artist`] %> - <% map[`map`][`title`] %> [<% map[`map`][`difficulty`] %>] +<% map[`readable_mods`] %>
                             </a>
                         </div>
@@ -29,6 +29,7 @@
                         <div class="map-date">
                             <time>
                                 <% timeago.format(map[`time`] * 1000) %>
+                                <a href="https://api.fumosu.pw/get_replay?id=<% map[`id`] %>"><i class="fa fa-download" aria-hidden="true" /></a>
                             </time>
                         </div>
                     </div>
