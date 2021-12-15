@@ -333,6 +333,14 @@ async def profile(user):
         badges = None
         defbadges = None
 
+    freezeinfo = [user_data['frozen'], timeago.format(datetime.fromtimestamp(user_data['freezetime']), datetime.now())]
+    if await glob.db.fetch('SELECT 1 FROM user_badges WHERE userid = %s', [user_data['id']]):
+        badges = True
+        defbadges = await glob.db.fetchall("SELECT badgeid, badges.name, badges.colour, badges.icon FROM user_badges LEFT JOIN badges ON user_badges.badgeid = badges.id WHERE userid = %s", [userdata['id']])
+    else:
+        badges = None
+        defbadges = None
+
     # user is banned and we're not staff; render 404
     if not user_data or not (user_data['priv'] & Privileges.Disallowed):
         return (await render_template('404.html'), 404)
