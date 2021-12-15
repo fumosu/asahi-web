@@ -47,9 +47,9 @@ def login_required(func):
 @frontend.route('/home')
 @frontend.route('/')
 async def home():
-    vn = await glob.db.fetchrow('SELECT pp, users.name, time FROM scores LEFT JOIN users ON scores.uid = users.id LEFT JOIN maps ON scores.md5 = maps.md5 WHERE users.priv & 384 AND NOT users.priv & 1024 AND maps.status = 2 AND scores.status = 2 AND scores.mode = 0 ORDER BY pp DESC LIMIT 1')
-    rx = await glob.db.fetchrow('SELECT pp, users.name, time FROM scores_rx LEFT JOIN users ON scores_rx.uid = users.id LEFT JOIN maps ON scores_rx.md5 = maps.md5 WHERE users.priv & 384 AND NOT users.priv & 1024 AND maps.status = 2 AND scores_rx.status = 2 AND scores_rx.mode = 0 ORDER BY pp DESC LIMIT 1')
-    ap = await glob.db.fetchrow('SELECT pp, users.name, time FROM scores_ap LEFT JOIN users ON scores_ap.uid = users.id LEFT JOIN maps ON scores_ap.md5 = maps.md5 WHERE users.priv & 384 AND NOT users.priv & 1024 AND maps.status = 2 AND scores_ap.status = 2 AND scores_ap.mode = 0 ORDER BY pp DESC LIMIT 1')
+    vn = await glob.db.fetchrow('SELECT pp, users.name, time FROM scores LEFT JOIN users ON scores.uid = users.id LEFT JOIN maps ON scores.md5 = maps.md5 WHERE NOT users.priv & 384 AND NOT users.priv & 1024 AND maps.status = 2 AND scores.status = 2 AND scores.mode = 0 ORDER BY pp DESC LIMIT 1')
+    rx = await glob.db.fetchrow('SELECT pp, users.name, time FROM scores_rx LEFT JOIN users ON scores_rx.uid = users.id LEFT JOIN maps ON scores_rx.md5 = maps.md5 WHERE NOT users.priv & 384 AND NOT users.priv & 1024 AND maps.status = 2 AND scores_rx.status = 2 AND scores_rx.mode = 0 ORDER BY pp DESC LIMIT 1')
+    ap = await glob.db.fetchrow('SELECT pp, users.name, time FROM scores_ap LEFT JOIN users ON scores_ap.uid = users.id LEFT JOIN maps ON scores_ap.md5 = maps.md5 WHERE NOT users.priv & 384 AND NOT users.priv & 1024 AND maps.status = 2 AND scores_ap.status = 2 AND scores_ap.mode = 0 ORDER BY pp DESC LIMIT 1')
     try:
         return await render_template('home.html', vnpp=round(vn['pp']), vndate=timeago.format(datetime.fromtimestamp(vn['time'])), rxdate=timeago.format(datetime.fromtimestamp(rx['time'])), apdate=timeago.format(datetime.fromtimestamp(ap['time'])), vnuser=vn['name'], rxpp=round(rx['pp']), rxuser=rx['name'], appp=round(ap['pp']), apuser=ap['name'])
     except:
