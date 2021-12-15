@@ -336,7 +336,17 @@
             </div>
             <div class="bar-selection badge-selects">
                 <span>
-                    Badges not yet implemented!
+                    {% if freeze[0] %}
+                    <b>{{ user['name'] }} is currently frozen. Their freeze timer runs out {{ freeze[1] }}!</b>
+                    {% endif %}
+                    {% if not freeze[0] and not res %}
+                    {% if ub %}
+                    {% for b in bi %}
+                    <i title="{{ b['name'] }}" style="{{ b['colour'] }} padding-left:2px; font-size: 25px;"
+                        class="{{ b['icon'] }}"></i>
+                    {% endfor %}
+                    {% endif %}
+                    {% endif %}
                 </span>
             </div>
         </div>
