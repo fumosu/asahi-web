@@ -325,6 +325,13 @@ async def profile(user):
 
     user_data = await glob.db.fetchrow("SELECT name, id, priv, country, freeze_timer FROM users WHERE id = %s OR safe_name = %s", [user, utils.get_safe_name(user)])
 
+    # user is banned and we're not staff; render 404
+    if not user_data or (user_data['priv'] & Privileges.Disallowed):
+        return (await render_template('404.html'), 404)
+
+    user_data['customisation'] = utils.has_profile_customizations(id)
+    
+    
     freezeinfo = [bool(user_data['priv'] & Privileges.Frozen), timeago.format(datetime.fromtimestamp(user_data['freeze_timer']), datetime.now())]
     if await glob.db.fetch('SELECT 1 FROM user_badges WHERE uid = %s', [user_data['id']]):
         badges = True
@@ -332,12 +339,6 @@ async def profile(user):
     else:
         badges = None
         defbadges = None
-
-    # user is banned and we're not staff; render 404
-    if not user_data or (user_data['priv'] & Privileges.Disallowed):
-        return (await render_template('404.html'), 404)
-
-    user_data['customisation'] = utils.has_profile_customizations(id)
 
     return await render_template('profile.html', user=user_data, mode=mode, mods=mods, country=(pycountry.countries.get(alpha_2=user_data['country'])).name, ub=badges, bi=defbadges, freeze=freezeinfo)
 
