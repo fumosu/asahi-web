@@ -321,20 +321,10 @@ async def profile(user):
     else:
         mods = 'vn'
 
-    query = "SELECT name, id, priv, country FROM users WHERE"
-    try:
-        int(user)
-        query += " id = %s"
-        arg = [user]
-    except:
-        query += " safe_name = %s"
-        arg = [utils.get_safe_name(user)]
-
-    user_data = await glob.db.fetchrow(query, arg)
+    user_data = await glob.db.fetchrow("SELECT name, id, priv, country FROM users WHERE id = %s OR safe_name = %s", [user, utils.get_safe_name(user)])
 
     # user is banned and we're not staff; render 404
-    is_staff = 'authenticated' in session and session['user_data']['is_staff']
-    if not user_data or not (user_data['priv'] & Privileges.Verified or is_staff):
+    if not user_data or not (user_data['priv'] & Privileges.Disallowed):
         return (await render_template('404.html'), 404)
 
     user_data['customisation'] = utils.has_profile_customizations(id)
