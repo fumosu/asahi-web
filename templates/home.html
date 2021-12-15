@@ -62,64 +62,36 @@
     </div>
 </div>
 
-<section class="section">
-    <div class="container has-text-centered py-4">
-        <h2 class="title mb-6">Some of our coolest features</h2>
-        <div class="columns has-text-left mb-6">
-            <div class="column is-4">
-                <div class="columns">
-                    <div class="column is-2">
-                        <i class="image is-32x32 fas fa-address-card"></i>
-                    </div>
-                    <div class="column is-10">
-                        <h4 class="title is-spaced is-4">
-                            PP for Relax and Autopilot
-                        </h4>
-                        <p class="subtitle is-6">
-                            Our server has unique pp formula for relax and
-                            autopilot. Good at waving your cursor or just
-                            smashing your keyboard? Join {{ appName() }} and get
-                            a fair reward for your skills!
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="column is-4">
-                <div class="columns">
-                    <div class="column is-2">
-                        <i class="image is-32x32 fas fa-ambulance"></i>
-                    </div>
-                    <div class="column is-10">
-                        <h4 class="title is-spaced is-4">Free osu!direct</h4>
-                        <p class="subtitle is-6">
-                            You won't have to pay for osu!supporter to have a
-                            convenient gameplay experience in the client -
-                            osu!direct is available for everyone! Keep in mind
-                            supporting us still grants a huge set of cool perks
-                            but absense of it doesn't affect your game sessions!
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="column is-4">
-                <div class="columns">
-                    <div class="column is-2">
-                        <i class="image is-32x32 fas fa-archive"></i>
-                    </div>
-                    <div class="column is-10">
-                        <h4 class="title is-spaced is-4">Flexible library</h4>
-                        <p class="subtitle is-6">
-                            We're written on top of cmyui's multipurpose library
-                            and tsunyoku's fatFuckSQL allowing for a fully
-                            asynchronous environment, both improving performance
-                            and the user's experience in the long term!
-                        </p>
-                    </div>
-                </div>
-            </div>
+<div id="pprecords">
+  <div class="main-block pp">
+    <div id="grid grpp" class="columns is-reset is-flex">
+        <div id="pp-record">
+            <h1>current vanilla pp record:</h1>
+            <p style="text-align: center; font-weight: bold;">{{ vnpp }}pp</p>
+            <p class="ppsub">done by <a href="https://{{ domain() }}/u/{{ vnuser }}?mods=vn">{{ vnuser }}</a>, {{ vndate }}</p>
+
         </div>
     </div>
-</section>
+  </div>
+  <div class="main-block pp">
+    <div id="grid grpp" class="columns is-reset is-flex">
+        <div id="pp-record">
+          <h1>current relax pp record:</h1>
+          <p style="text-align: center; font-weight: bold;">{{ rxpp }}pp</p>
+          <p class="ppsub">done by <a href="https://{{ domain() }}/u/{{ rxuser }}?mods=rx">{{ rxuser }}</a>, {{ rxdate }}</p>
+        </div>
+    </div>
+  </div>
+  <div class="main-block pp">
+    <div id="grid grpp" class="columns is-reset is-flex">
+        <div id="pp-record">
+          <h1>current autopilot pp record:</h1>
+          <p style="text-align: center; font-weight: bold;">{{ appp }}pp</p>
+          <p class="ppsub">done by <a href="https://{{ domain() }}/u/{{ apuser }}?mods=ap">{{ apuser }}</a>, {{ apdate }}</p>
+        </div>
+    </div>
+  </div>
+</div>
 
 {% if not session.authenticated %}
 <section class="hero splash">
