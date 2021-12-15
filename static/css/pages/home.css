@@ -60,10 +60,6 @@
     background-color: transparent !important;
 }
 
-.main-block {
-    width: 1024px;
-}
-
 .my-con {
     margin: 0 0 0 0;
     width: 100%;
@@ -94,6 +90,11 @@
         background-color: #343a40 !important;
     }
 
+    .main-block {
+        width: initial;
+        height: 285px;
+    }
+    
     .navbar-item.has-dropdown {
         background-color: transparent !important;
         margin: 0 !important;
