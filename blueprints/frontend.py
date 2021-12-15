@@ -6,7 +6,6 @@ import hashlib
 import os
 import time
 import pycountry
-import datetime
 import timeago
 
 from cmyui.logging import Ansi
@@ -23,6 +22,7 @@ from quart import render_template
 from quart import request
 from quart import session
 from quart import send_file
+from datetime import datetime
 
 from constants import regexes
 from objects import glob
@@ -323,12 +323,12 @@ async def profile(user):
     else:
         mods = 'vn'
 
-    user_data = await glob.db.fetchrow("SELECT name, id, priv, country FROM users WHERE id = %s OR safe_name = %s", [user, utils.get_safe_name(user)])
+    user_data = await glob.db.fetchrow("SELECT name, id, priv, country, freezeti FROM users WHERE id = %s OR safe_name = %s", [user, utils.get_safe_name(user)])
 
-    freezeinfo = [user_data['frozen'], timeago.format(datetime.fromtimestamp(user_data['freezetime']), datetime.now())]
-    if await glob.db.fetch('SELECT 1 FROM user_badges WHERE userid = %s', [user_data['id']]):
+    freezeinfo = [bool(user_data['priv'] & Privileges.Frozen), timeago.format(datetime.fromtimestamp(user_data['freeze_timer']), datetime.now())]
+    if await glob.db.fetch('SELECT 1 FROM user_badges WHERE uid = %s', [user_data['id']]):
         badges = True
-        defbadges = await glob.db.fetchall("SELECT badgeid, badges.name, badges.colour, badges.icon FROM user_badges LEFT JOIN badges ON user_badges.badgeid = badges.id WHERE userid = %s", [userdata['id']])
+        defbadges = await glob.db.fetch("SELECT bid, badges.name, badges.color, badges.icon FROM user_badges LEFT JOIN badges ON user_badges.bid = badges.id WHERE uid = %s", [user_data['id']])
     else:
         badges = None
         defbadges = None
