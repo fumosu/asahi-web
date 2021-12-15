@@ -323,7 +323,7 @@ async def profile(user):
     else:
         mods = 'vn'
 
-    user_data = await glob.db.fetchrow("SELECT name, id, priv, country, freezeti FROM users WHERE id = %s OR safe_name = %s", [user, utils.get_safe_name(user)])
+    user_data = await glob.db.fetchrow("SELECT name, id, priv, country, freeze_timer FROM users WHERE id = %s OR safe_name = %s", [user, utils.get_safe_name(user)])
 
     freezeinfo = [bool(user_data['priv'] & Privileges.Frozen), timeago.format(datetime.fromtimestamp(user_data['freeze_timer']), datetime.now())]
     if await glob.db.fetch('SELECT 1 FROM user_badges WHERE uid = %s', [user_data['id']]):
